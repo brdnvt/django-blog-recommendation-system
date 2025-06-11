@@ -492,11 +492,6 @@ If you encounter issues not covered here:
    docker-compose logs -f django-app
    ```
 
-2. **GitHub Issues:** [Report an issue](https://github.com/yourusername/django-blog-recommendation-system/issues)
-
-3. **Documentation:** Check the [Wiki](https://github.com/yourusername/django-blog-recommendation-system/wiki)
-
-4. **Community:** Join our [Discussions](https://github.com/yourusername/django-blog-recommendation-system/discussions)
 
 ## Next Steps
 
@@ -506,4 +501,3 @@ After successful installation:
 2. **Read the API Documentation:** http://localhost:8000/api/docs/
 3. **Check Performance Monitoring:** http://localhost:8000/silk/
 4. **Configure Recommendations:** See [Configuration Guide](CONFIGURATION.md)
-5. **Set up Monitoring:** See [Monitoring Guide](MONITORING.md)

@@ -5,7 +5,7 @@ A comprehensive, feature-rich blog platform with intelligent recommendation engi
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://python.org)
 [![Django](https://img.shields.io/badge/Django-4.2.7-green.svg)](https://djangoproject.com)
 [![Docker](https://img.shields.io/badge/Docker-Compose-blue.svg)](https://docker.com)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 
 ## 📋 Table of Contents
 
@@ -442,4 +442,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ⭐ **Star this repository if you find it useful!**
 
-Made with ❤️ by [Your Name](https://github.com/yourusername)
