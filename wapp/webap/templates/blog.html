@@ -1,0 +1,72 @@
+{% extends "index.html" %}
+{% block main-content %}
+<main class="container">
+    <div class="container my-5">
+        <div class="p-5 text-center bg-body-tertiary rounded-3">
+            <h1 class="text-body-emphasis">Тест БЛОГ</h1>
+            <p class="lead">
+                Вітаємо! Це блог, в якому Ви можете публікувати свої думки, коментувати
+                та лайкати дописи інших користувачів.
+            </p>
+            <a class="btn btn-primary btn-lg" href="{% url "create" %}" role="button">Створити допис</a>
+        </div>
+    </div>    <div class="row mb-2">
+        {% for post in blog_posts %}
+            <div class="col-md-6">
+                <div class="row g-0 border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">
+                    <div class="col p-4 d-flex flex-column position-static">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <strong class="d-inline-block text-primary-emphasis">{{ post.title }}</strong>
+                            {% if post.category %}
+                                <span class="badge text-white" style="background-color: {{ post.category.color }};">{{ post.category.name }}</span>
+                            {% endif %}
+                        </div>
+                        <h6 class="mb-1">Автор: {{ post.author.first_name|default:post.author.username }}</h6>
+                        <div class="mb-2 text-body-secondary">{{ post.created_at|date:"d.m.Y H:i" }}</div>
+                        
+                        <!-- Теги -->
+                        {% if post.tags.all %}
+                            <div class="mb-2">
+                                {% for tag in post.tags.all %}
+                                    <span class="badge text-white me-1" style="background-color: {{ tag.color }}; font-size: 0.7em;">{{ tag.name }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <p class="box card-text mb-auto">{{ post.text|truncatewords:20 }}</p>
+                        
+                        <!-- Статистика -->
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <div class="text-muted small">
+                                <i class="fa fa-eye"></i> {{ post.views_count }}
+                                <i class="fa fa-heart ms-2"></i> {{ post.likes_count }}
+                                <i class="fa fa-clock-o ms-2"></i> {{ post.reading_time }} хв
+                            </div>
+                            <a href="{% url 'display_post' post.id %}" class="btn btn-outline-primary btn-sm">
+                                Читати
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-auto d-none d-lg-block">
+                        {% if post.base64_image != None %}
+                            <img src="data:image/png;base64,{{ post.base64_image }}" width="200" height="250" class="rounded">
+                        {% else %}
+                            <svg class="bd-placeholder-img rounded" width="200" height="250" xmlns="http://www.w3.org/2000/svg"
+                                 role="img" aria-label="Placeholder: Thumbnail" preserveAspectRatio="xMidYMid slice"
+                                 focusable="false"><title>Placeholder</title>
+                                <rect width="100%" height="100%" fill="#55595c"></rect>
+                                <text x="50%" y="50%" fill="#eceeef" dy=".3em">Thumbnail</text>
+                            </svg>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12 text-center">
+                <p class="text-muted">Поки що немає жодних постів. <a href="{% url "create" %}">Створіть перший!</a></p>
+            </div>
+        {% endfor %}
+    </div>
+</main>
+{% load static %}
+{% endblock main-content %}

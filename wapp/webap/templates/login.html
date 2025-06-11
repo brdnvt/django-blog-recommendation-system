@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Авторизація</title>
+</head>
+<body>
+    <h2>Вхід в систему</h2>
+    <form id="loginForm">
+        <label for="username">Логін:</label>
+        <input type="text" id="username" required>
+        <label for="password">Пароль:</label>
+        <input type="password" id="password" required>
+        <button type="submit">Увійти</button>
+    </form>
+
+    <script>
+        document.getElementById("loginForm").addEventListener("submit", async function(event) {
+            event.preventDefault();
+            let username = document.getElementById("username").value;
+            let password = document.getElementById("password").value;
+            
+            let response = await fetch("http://127.0.0.1:8000/api/login/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username: username, password: password })
+            });
+
+            let data = await response.json();
+            alert("Ваш токен: " + data.token);
+            localStorage.setItem("token", data.token);
+        });
+    </script>
+</body>
+</html>

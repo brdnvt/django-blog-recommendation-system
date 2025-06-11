@@ -1,0 +1,165 @@
+version: '3.8'
+
+services:
+  # Infrastructure services
+  rabbitmq:
+    image: rabbitmq:4.0-management
+    container_name: rabbitmq
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  mongo_eventstore:
+    image: mongo:6
+    container_name: mongo_eventstore
+    ports:
+      - '27017:27017'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  mongo_recommendation:
+    image: mongo:6
+    container_name: mongo_recommendation
+    ports:
+      - '27018:27017'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  mongo_notification:
+    image: mongo:6
+    container_name: mongo_notification
+    ports:
+      - '27019:27017'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - '6379:6379'
+
+  # Application services
+  django:
+    build: ../wapp
+    container_name: django_app
+    ports:
+      - '8000:8000'
+    environment:
+      - DEBUG=True
+      - AMQP_HOST=rabbitmq
+      - AMQP_USER=admin
+      - AMQP_PASS=admin
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    volumes:
+      - ../wapp:/app
+
+  recommendation:
+    build: ../recommendation
+    container_name: recommendation_service
+    ports:
+      - '8001:8001'
+    environment:
+      - MONGO_URL=mongodb://root:root@mongo_recommendation:27017/
+      - AMQP_HOST=rabbitmq
+      - AMQP_USER=admin
+      - AMQP_PASS=admin
+    depends_on:
+      - mongo_recommendation
+      - rabbitmq
+    volumes:
+      - ../recommendation:/app
+
+  # Event processing services
+  store_service:
+    build: .
+    container_name: store_service
+    command: python store.py
+    environment:
+      - AMQP_HOST=rabbitmq
+      - AMQP_USER=admin
+      - AMQP_PASS=admin
+      - EVENT_STORE_DB_URL=mongo_eventstore:27017
+      - MONGO_STORE_USER=root
+      - MONGO_STORE_PASS=root
+      - EVENT_STORE_DB=events
+      - EVENT_EXCHANGE=blog.events
+      - STORE_QUEUE=blog_event_store
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      mongo_eventstore:
+        condition: service_healthy
+    volumes:
+      - .:/app
+
+  moderation_service:
+    build: .
+    container_name: moderation_service
+    command: python moderation.py
+    environment:
+      - AMQP_HOST=rabbitmq
+      - AMQP_USER=admin
+      - AMQP_PASS=admin
+      - EVENT_EXCHANGE=blog.events
+      - MODERATION_QUEUE=blog_event_moderation
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    volumes:
+      - .:/app
+
+  recommendation_processor:
+    build: .
+    container_name: recommendation_processor
+    command: python recomendation.py
+    environment:
+      - AMQP_HOST=rabbitmq
+      - AMQP_USER=admin
+      - AMQP_PASS=admin
+      - RECOMMENDATION_DB_URL=mongo_recommendation:27017
+      - MONGO_RECOMM_USER=root
+      - MONGO_RECOMM_PASS=root
+      - RECOMMENDATION_DB=recommendations
+      - EVENT_EXCHANGE=blog.events
+      - RECOMMENDATION_QUEUE=blog_event_recommendation
+    depends_on:
+      - rabbitmq
+      - mongo_recommendation
+    volumes:
+      - .:/app
+
+  # Nginx proxy
+  nginx:
+    image: nginx:alpine
+    container_name: nginx_proxy
+    ports:
+      - '80:80'
+    volumes:
+      - ../blogservices/nginx.local.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - django
+      - recommendation

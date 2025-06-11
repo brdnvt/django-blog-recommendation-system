@@ -1,0 +1,12 @@
+Django==5.2.1
+djangorestframework
+drf-spectacular
+djangorestframework-simplejwt
+django-rest-knox
+django-redis
+psycopg2-binary
+python-decouple
+cryptography
+pika
+python-dotenv
+django-silk
